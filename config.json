@@ -1,0 +1,12 @@
+{
+  "servers": [
+    {
+      "name": "本机 (Localhost)",
+      "address": "ws://localhost:8888/ws"
+    },
+    {
+      "name": "本机 (127.0.0.1)",
+      "address": "ws://127.0.0.1:8888/ws"
+    }
+  ]
+}

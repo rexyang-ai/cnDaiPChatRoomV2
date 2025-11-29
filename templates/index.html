@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DaiP 智能聊天室</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/scrollbar.css">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="login-screen" class="screen active">
+        <div class="login-bg-decoration"></div>
+        <div class="login-card">
+            <div class="logo-area">
+                <h1>DaiP</h1>
+                <p>Intelligent Chat Room</p>
+            </div>
+            <div class="form-group">
+                <label>昵称</label>
+                <input type="text" id="nickname-input" placeholder="请输入您的昵称" maxlength="15">
+            </div>
+            <div class="form-group">
+                <label>服务器</label>
+                <select id="server-select">
+                    <option value="" disabled selected>加载中...</option>
+                </select>
+            </div>
+            <button id="login-btn">进入聊天室</button>
+            <p id="login-error" class="error-msg"></p>
+        </div>
+    </div>
+
+    <!-- Chat Screen -->
+    <div id="chat-screen" class="screen">
+        <div class="container">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <div class="avatar-circle" id="my-avatar"></div>
+                    <div class="user-info">
+                        <h3 id="my-nickname">User</h3>
+                        <span class="status-dot online"></span> 在线
+                    </div>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h4>在线用户 (<span id="user-count">0</span>)</h4>
+                    <div class="user-list" id="online-users">
+                        <!-- User items injected here -->
+                    </div>
+                </div>
+
+                <div class="sidebar-footer">
+                    <button id="logout-btn" class="logout-btn">
+                        <span>🚪</span> 退出登录
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Chat Area -->
+            <div class="main-chat">
+                <div class="chat-header">
+                    <div class="chat-info">
+                        <h2>公共频道</h2>
+                        <p>欢迎来到 DaiP 智能聊天室</p>
+                    </div>
+                </div>
+
+                <div class="chat-messages" id="chat-messages">
+                    <!-- Messages injected here -->
+                    <div class="message system">
+                        <div class="content">欢迎加入聊天室！尝试发送 @电影 [url] 或 @川小农 [message]</div>
+                    </div>
+                </div>
+
+                <div class="chat-input-area">
+                    <div class="toolbar">
+                        <button id="emoji-btn" class="tool-btn" title="发送表情">😊</button>
+                        <button class="tool-btn" title="电影指令" onclick="insertCommand('@电影 ')">🎬</button>
+                        <button class="tool-btn" title="AI对话" onclick="insertCommand('@川小农 ')">🤖</button>
+                    </div>
+                    <div class="input-wrapper">
+                        <textarea id="message-input" placeholder="输入消息..." rows="1"></textarea>
+                        <button id="send-btn" class="send-btn">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Emoji Picker Popover -->
+                    <div id="emoji-picker" class="emoji-picker hidden">
+                        <div class="emoji-grid">
+                            <span>😀</span><span>😃</span><span>😄</span><span>😁</span><span>😆</span>
+                            <span>😅</span><span>😂</span><span>🤣</span><span>😊</span><span>😇</span>
+                            <span>🙂</span><span>🙃</span><span>😉</span><span>😌</span><span>😍</span>
+                            <span>🥰</span><span>😘</span><span>😗</span><span>😙</span><span>😚</span>
+                            <span>😋</span><span>😛</span><span>😝</span><span>😜</span><span>🤪</span>
+                            <span>🤨</span><span>🧐</span><span>🤓</span><span>😎</span><span>🤩</span>
+                            <span>🥳</span><span>😏</span><span>😒</span><span>😞</span><span>😔</span>
+                            <span>😟</span><span>😕</span><span>🙁</span><span>☹️</span><span>😣</span>
+                            <span>😖</span><span>😫</span><span>😩</span><span>🥺</span><span>😢</span>
+                            <span>😭</span><span>😤</span><span>😠</span><span>😡</span><span>🤬</span>
+                            <span>👍</span><span>👎</span><span>👌</span><span>✌️</span><span>🤞</span>
+                            <span>🤝</span><span>👋</span><span>🎬</span><span>🤖</span><span>🔥</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+</body>
+</html>
