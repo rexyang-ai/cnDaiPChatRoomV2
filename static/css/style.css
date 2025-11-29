@@ -531,39 +531,78 @@ select option {
 /* Emoji Picker */
 .emoji-picker {
     position: absolute;
-    bottom: 100px;
+    bottom: 70px; /* 稍微调整位置，离输入框更近 */
     left: 20px;
-    background: white;
-    border: 1px solid #e1e1e1;
+    background: rgba(255, 255, 255, 0.95); /* 稍微透明 */
+    backdrop-filter: blur(10px); /* 毛玻璃效果 */
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(0,0,0,0.1);
     border-radius: var(--radius-md);
-    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-    padding: 10px;
-    width: 300px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+    padding: 12px;
+    width: 320px; /* 稍微加宽 */
     z-index: 100;
+    transition: all 0.2s ease-in-out;
+    transform-origin: bottom left;
 }
 
 .emoji-picker.hidden {
     display: none;
+    opacity: 0;
+    transform: scale(0.95);
 }
+
+/* 显示时的动画状态（需要JS配合移除hidden后添加显示类，或者简单的display切换）
+   由于目前是用 display: none 切换，动画可能不会触发。
+   我们可以优化一下显示逻辑，或者仅做简单的样式优化。
+   这里主要优化 grid 布局防止横向滚动条。
+*/
 
 .emoji-grid {
     display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    gap: 5px;
-    max-height: 200px;
+    grid-template-columns: repeat(auto-fill, minmax(36px, 1fr)); /* 自适应列宽 */
+    gap: 4px;
+    max-height: 250px;
     overflow-y: auto;
+    overflow-x: hidden; /* 强制隐藏横向滚动条 */
+    padding-right: 5px; /* 给滚动条留位置 */
+}
+
+/* 优化滚动条样式 */
+.emoji-grid::-webkit-scrollbar {
+    width: 6px;
+}
+
+.emoji-grid::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.emoji-grid::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+}
+
+.emoji-grid::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.2);
 }
 
 .emoji-grid span {
     cursor: pointer;
-    font-size: 1.2rem;
+    font-size: 1.4rem;
     text-align: center;
-    padding: 5px;
-    border-radius: 5px;
+    padding: 6px;
+    border-radius: 8px;
+    transition: background 0.2s, transform 0.1s;
+    user-select: none;
 }
 
 .emoji-grid span:hover {
-    background: #f1f2f6;
+    background: rgba(0, 0, 0, 0.05);
+    transform: scale(1.1);
+}
+
+.emoji-grid span:active {
+    transform: scale(0.95);
 }
 
 /* Responsive Design */
