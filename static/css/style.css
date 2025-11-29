@@ -45,89 +45,168 @@ body {
 #login-screen {
     justify-content: center;
     align-items: center;
-    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+    /* 调整为深蓝/科技蓝/紫色系的冷色调渐变，去除粉红色 */
+    background: linear-gradient(45deg, #0f0c29, #302b63, #24243e, #1cb5e0);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
     position: relative;
+    overflow: hidden;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 .login-bg-decoration {
     position: absolute;
     width: 100%;
     height: 100%;
-    background-image: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.1) 0%, transparent 20%),
-                      radial-gradient(circle at 80% 80%, rgba(255,255,255,0.1) 0%, transparent 20%);
-    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+}
+
+.login-bg-decoration::before,
+.login-bg-decoration::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    z-index: 0;
+    opacity: 0.5; /* 稍微降低不透明度，使背景更融合 */
+}
+
+.login-bg-decoration::before {
+    width: 300px;
+    height: 300px;
+    background: #4b6cb7; /* 替换原来的粉色为舒适的蓝色 */
+    top: -50px;
+    left: -50px;
+    animation: float 8s infinite ease-in-out;
+}
+
+.login-bg-decoration::after {
+    width: 400px;
+    height: 400px;
+    background: #00d2d3; /* 保持青色，增加清新感 */
+    bottom: -100px;
+    right: -100px;
+    animation: float 10s infinite ease-in-out reverse;
+}
+
+@keyframes float {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(30px, 30px); }
 }
 
 .login-card {
-    background: var(--white);
+    background: rgba(255, 255, 255, 0.15);
     padding: 40px;
     border-radius: var(--radius-lg);
-    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
     width: 100%;
     max-width: 400px;
     text-align: center;
     z-index: 1;
+    color: white;
+    animation: fadeIn 1s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .logo-area h1 {
-    color: var(--primary-color);
-    font-size: 2.5rem;
+    color: white;
+    font-size: 3rem;
     margin-bottom: 5px;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    font-weight: 800;
+    letter-spacing: 2px;
 }
 
 .logo-area p {
-    color: var(--text-gray);
-    margin-bottom: 30px;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 40px;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 25px;
     text-align: left;
 }
 
 .form-group label {
     display: block;
     margin-bottom: 8px;
-    color: var(--text-dark);
+    color: white;
     font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    padding-left: 5px;
 }
 
 input[type="text"], select {
     width: 100%;
-    padding: 12px;
-    border: 2px solid #e1e1e1;
+    padding: 14px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: var(--radius-md);
     font-size: 1rem;
-    transition: border-color 0.3s;
+    color: white;
+    transition: all 0.3s;
+}
+
+input[type="text"]::placeholder {
+    color: rgba(255, 255, 255, 0.7);
 }
 
 input[type="text"]:focus, select:focus {
-    border-color: var(--primary-color);
+    background: rgba(255, 255, 255, 0.3);
+    border-color: white;
     outline: none;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+select option {
+    background: #333;
+    color: white;
 }
 
 #login-btn {
     width: 100%;
-    padding: 12px;
-    background: var(--primary-color);
+    padding: 14px;
+    background: linear-gradient(45deg, #6c5ce7, #a29bfe);
     color: var(--white);
     border: none;
     border-radius: var(--radius-md);
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     cursor: pointer;
-    transition: background 0.3s;
-    font-weight: 600;
+    transition: all 0.3s;
+    font-weight: 700;
+    margin-top: 15px;
+    box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
+    letter-spacing: 1px;
 }
 
 #login-btn:hover {
-    background: var(--primary-dark);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(108, 92, 231, 0.6);
+    background: linear-gradient(45deg, #5849be, #8e44ad);
 }
 
 .error-msg {
-    color: var(--danger);
-    margin-top: 15px;
+    color: #ff7675;
+    margin-top: 20px;
     font-size: 0.9rem;
     min-height: 20px;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
 /* Chat Screen */
