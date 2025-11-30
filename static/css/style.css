@@ -236,6 +236,12 @@ select option {
     background: linear-gradient(45deg, #5849be, #8e44ad);
 }
 
+/* Chat Screen */
+#chat-screen {
+    background: #f5f6fa;
+    padding: 20px;
+}
+
 .container {
     display: flex;
     width: 100%;
@@ -266,8 +272,8 @@ select option {
 }
 
 .avatar-circle {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     background: var(--primary-color);
     display: flex;
@@ -275,6 +281,7 @@ select option {
     justify-content: center;
     color: white;
     font-weight: bold;
+    font-size: 1.2rem;
 }
 
 .user-info h3 {
@@ -379,6 +386,7 @@ select option {
     height: 100%;
     overflow: hidden;
     position: relative;
+    background: var(--white);
 }
 
 .chat-header {
@@ -467,6 +475,30 @@ select option {
     border-radius: 18px 18px 18px 0;
     padding: 12px 16px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+/* Movie/AI specific styles */
+.message-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    max-width: 100%;
+}
+
+.message-card video {
+    width: 100%;
+    max-width: 400px;
+    display: block;
+}
+
+.ai-badge {
+    background: #00cec9;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    margin-left: 5px;
 }
 
 .chat-input-area {
@@ -609,7 +641,7 @@ select option {
     background-color: rgba(0, 0, 0, 0.2);
 }
 
-.emoji-item {
+.emoji-grid span {
     cursor: pointer;
     padding: 5px;
     text-align: center;
@@ -617,7 +649,7 @@ select option {
     transition: background 0.2s;
 }
 
-.emoji-item:hover {
+.emoji-grid span:hover {
     background: rgba(0,0,0,0.05);
 }
 
