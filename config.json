@@ -10,8 +10,13 @@
     }
     ,
     {
-      "name": "公网 (127.0.0.1)",
-      "address": "ws://127.0.0.1:8888/ws"
+      "name": "公网 (free.idcfengye.com:10156)",
+      "address": "ws://free.idcfengye.com:10156/ws"
+    }
+    ,
+    {
+      "name": "公网小米球 (ngrok.xiaomiqiu123.top:15560)",
+      "address": "ws://ngrok.xiaomiqiu123.top:15560/ws"
     }
   ]
 }
