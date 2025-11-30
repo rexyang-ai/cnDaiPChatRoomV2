@@ -1,13 +1,26 @@
 import os
 import json
 import socket
+import uuid
 import tornado.ioloop
 import tornado.web
 import tornado.websocket
 import tornado.escape
+from openai import AsyncOpenAI
 
 # Store connected users: {nickname: WebSocketHandler}
 clients = {}
+
+# AI Config
+AI_API_KEY = "sk-orxlsmelhexcosqumhchsiabeasxhwkmvcfzqqjakwhqoaqv"
+AI_BASE_URL = "https://api.siliconflow.cn/v1"
+AI_MODEL = "Qwen/Qwen2.5-7B-Instruct"
+
+# Initialize AsyncOpenAI client
+ai_client = AsyncOpenAI(
+    api_key=AI_API_KEY,
+    base_url=AI_BASE_URL
+)
 
 class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
@@ -88,13 +101,39 @@ class ChatWebSocket(tornado.websocket.WebSocketHandler):
                 }
             elif content.startswith("@川小农"):
                 # Format: @川小农 hello
-                # Future AI integration here
-                response = {
-                    "type": "ai_chat",
+                # Broadcast user's message first so everyone sees the question
+                user_msg = {
+                    "type": "text",
                     "sender": self.nickname,
-                    "content": content, # Keep original for now
+                    "content": content,
                     "timestamp": data.get("timestamp")
                 }
+                self.broadcast(user_msg)
+
+                # Prepare for AI response
+                user_query = content.replace("@川小农", "").strip()
+                if not user_query:
+                    user_query = "你好"
+
+                # Generate a unique ID for this AI response session
+                response_id = str(uuid.uuid4())
+                
+                # Send initial "AI thinking" placeholder
+                init_response = {
+                    "type": "ai_chat",
+                    "sender": "川小农",
+                    "content": user_query, # Pass original query to display context if needed
+                    "id": response_id,
+                    "timestamp": data.get("timestamp")
+                }
+                self.broadcast(init_response)
+
+                # Spawn async task to stream AI response
+                tornado.ioloop.IOLoop.current().spawn_callback(
+                    self.stream_ai_response, user_query, response_id
+                )
+                return # Return here to avoid double broadcasting
+
             else:
                 response = {
                     "type": "text",
@@ -107,6 +146,49 @@ class ChatWebSocket(tornado.websocket.WebSocketHandler):
             
         except Exception as e:
             print(f"Error handling message: {e}")
+
+    async def stream_ai_response(self, query, response_id):
+        try:
+            stream = await ai_client.chat.completions.create(
+                model=AI_MODEL,
+                messages=[
+                    {"role": "system", "content": """角色：你是一名计算机科学与技术专业的方案编写助手
+功能：
+1、你可以接收用户输入的信息或关键字，通过信息或关键字，你可以分析生成与之有关的10个文案主题，以供用户选择。主题列表形式如下：
+[1]xxxxxxx
+[2]uuuuuuuuu
+……
+2、你需要提示用户选择主题编号，并通过该主题编号对应的主题内容，生成两种风格的大纲，大纲需要包含一级、二级标题，风格如下：
+风格一：专业风
+风格二：学生风
+3、你需要提示用户选择风格，并按风格生成与之对应的详细内容。"""},
+                    {"role": "user", "content": query}
+                ],
+                stream=True
+            )
+
+            async for chunk in stream:
+                if chunk.choices[0].delta.content is not None:
+                    content = chunk.choices[0].delta.content
+                    # Broadcast chunk to all clients
+                    update_msg = {
+                        "type": "ai_stream_update",
+                        "id": response_id,
+                        "content": content
+                    }
+                    self.broadcast(update_msg)
+            
+            # Optional: Send completion message if needed, or just stop
+            
+        except Exception as e:
+            print(f"AI Error: {e}")
+            # Send error message to UI
+            error_msg = {
+                "type": "ai_stream_update",
+                "id": response_id,
+                "content": "\n[系统错误: AI连接失败]"
+            }
+            self.broadcast(error_msg)
 
     def on_close(self):
         # Only remove from clients if THIS specific connection is the one registered

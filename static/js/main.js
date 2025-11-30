@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginScreen = document.getElementById('login-screen');
     const chatScreen = document.getElementById('chat-screen');
     const serverSelect = document.getElementById('server-select');
+    const refreshServerBtn = document.getElementById('refresh-server-btn');
     const loginBtn = document.getElementById('login-btn');
     const nicknameInput = document.getElementById('nickname-input');
     const loginError = document.getElementById('login-error');
@@ -23,50 +24,85 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentUser = '';
 
     // 1. Load Config
-    fetch('/api/config')
-        .then(response => response.json())
-        .then(data => {
-            serverSelect.innerHTML = '';
-            if (data.servers && data.servers.length > 0) {
-                data.servers.forEach(server => {
-                    const option = document.createElement('option');
-                    option.value = server.address; // Use 'address' from JSON
-                    option.textContent = server.name;
-                    serverSelect.appendChild(option);
-                });
+    function loadServerConfig() {
+        // Add loading animation or visual feedback if needed
+        refreshServerBtn.classList.add('rotating'); // Assuming we might add a rotation class later
+        serverSelect.innerHTML = '<option value="" disabled selected>加载中...</option>';
+        serverSelect.disabled = true;
 
-                // Auto Login Check
-                const session = localStorage.getItem('chat_session');
-                if (session) {
-                    try {
-                        const { nickname, serverUrl } = JSON.parse(session);
-                        if (nickname && serverUrl) {
-                            nicknameInput.value = nickname;
-                            serverSelect.value = serverUrl;
-                            // If server not in list (e.g. IP changed), value might be empty, so check
-                            if (!serverSelect.value) {
-                                // Fallback: add option or just clear session
-                                // For now, clear session if server unavailable
-                                localStorage.removeItem('chat_session');
-                            } else {
-                                performLogin();
+        fetch('/api/config')
+            .then(response => response.json())
+            .then(data => {
+                serverSelect.innerHTML = '';
+                if (data.servers && data.servers.length > 0) {
+                    data.servers.forEach(server => {
+                        const option = document.createElement('option');
+                        option.value = server.address; // Use 'address' from JSON
+                        option.textContent = server.name;
+                        serverSelect.appendChild(option);
+                    });
+
+                    // Auto Login Check
+                    const session = localStorage.getItem('chat_session');
+                    if (session) {
+                        try {
+                            const { nickname, serverUrl } = JSON.parse(session);
+                            if (nickname && serverUrl) {
+                                nicknameInput.value = nickname;
+                                serverSelect.value = serverUrl;
+                                // If server not in list (e.g. IP changed), value might be empty, so check
+                                if (!serverSelect.value) {
+                                    // Fallback: add option or just clear session
+                                    // For now, clear session if server unavailable
+                                    localStorage.removeItem('chat_session');
+                                } else {
+                                    // Only auto-login on initial load, not on manual refresh
+                                    // We can distinguish if needed, but for now keep it simple
+                                    // Or maybe we shouldn't auto-login on refresh? 
+                                    // Let's just restore selection.
+                                }
                             }
+                        } catch (e) {
+                            localStorage.removeItem('chat_session');
                         }
-                    } catch (e) {
-                        localStorage.removeItem('chat_session');
                     }
-                }
 
-            } else {
-                const option = document.createElement('option');
-                option.text = "无法加载服务器列表";
-                serverSelect.appendChild(option);
-            }
-        })
-        .catch(err => {
-            console.error('Error loading config:', err);
-            serverSelect.innerHTML = '<option>加载失败</option>';
-        });
+                } else {
+                    const option = document.createElement('option');
+                    option.text = "无法加载服务器列表";
+                    serverSelect.appendChild(option);
+                }
+            })
+            .catch(err => {
+                console.error('Error loading config:', err);
+                serverSelect.innerHTML = '<option>加载失败</option>';
+            })
+            .finally(() => {
+                serverSelect.disabled = false;
+                refreshServerBtn.classList.remove('rotating');
+                
+                // Try to restore session if we are on the login screen
+                const session = localStorage.getItem('chat_session');
+                if (session && !ws) {
+                     try {
+                        const { nickname, serverUrl } = JSON.parse(session);
+                        if (serverUrl && Array.from(serverSelect.options).some(opt => opt.value === serverUrl)) {
+                             serverSelect.value = serverUrl;
+                             if (nickname) nicknameInput.value = nickname;
+                        }
+                     } catch(e) {}
+                }
+            });
+    }
+
+    // Initial Load
+    loadServerConfig();
+
+    // Refresh Button Event
+    refreshServerBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        loadServerConfig();
+    });
 
     // 2. Login Logic
     loginBtn.addEventListener('click', performLogin);
@@ -206,6 +242,26 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.online_users) {
                 updateOnlineUsers(data.online_users);
             }
+        } else if (data.type === 'ai_stream_update') {
+            // Handle streaming AI response
+            const contentDiv = document.getElementById(`ai-content-${data.id}`);
+            if (contentDiv) {
+                // Check if it's the first chunk (still has "AI thinking" text)
+                if (contentDiv.dataset.streaming === "false") {
+                    contentDiv.textContent = ""; // Clear "Thinking..."
+                    contentDiv.dataset.streaming = "true";
+                    contentDiv.style.color = "#2d3436"; // Reset color to normal text
+                    contentDiv.style.borderTop = "none";
+                    contentDiv.style.paddingTop = "0";
+                }
+                // Append chunk
+                // Simple text append. For markdown, we'd need a parser.
+                // We'll preserve whitespace by using textContent + style="white-space: pre-wrap" in CSS or inline
+                contentDiv.textContent += data.content;
+                
+                // Auto scroll if near bottom
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
         } else {
             renderUserMessage(data);
         }
@@ -252,12 +308,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
         } else if (data.type === 'ai_chat') {
-            // AI Message Style
+            // AI Message Style - Initial State
+            // data.content here is the original user query, or empty
+            // data.id is the unique ID for this session
             contentHtml = `
                 <div class="content">
-                    <span style="color: #00cec9; font-weight: bold;">@川小农</span> ${escapeHtml(data.content.replace('@川小农', ''))}
-                    <div style="margin-top: 5px; font-size: 0.8rem; color: #666; border-top: 1px dashed #ccc; padding-top: 5px;">
-                        🤖 AI 正在思考中... (模拟)
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                        <div class="avatar-small" style="background: #00cec9;">AI</div>
+                        <span style="color: #00cec9; font-weight: bold;">川小农</span>
+                    </div>
+                    <div id="ai-content-${data.id}" data-streaming="false" style="font-size: 0.95rem; line-height: 1.6; color: #666; white-space: pre-wrap;">
+                        🤖 AI 正在思考中...
                     </div>
                 </div>
             `;
